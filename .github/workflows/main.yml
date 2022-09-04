@@ -56,3 +56,17 @@ jobs:
         with:
           push: true
           tags: wimsau/infra:latest
+  deploy:
+    run-on: ubuntu-latest
+    need: build_and_push_to_docker_hub
+    steps:
+      - name: executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sudo docker pull wimsau/infra
+            sudo docker stop $(sudo docker ps -a -q)
+            sudo docker run --rm -d -p 5000:5000 wimsau/infra
